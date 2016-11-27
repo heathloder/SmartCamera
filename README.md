@@ -15,4 +15,4 @@ With wiringPi installed, compile the PIRTrigger.c program as follows:
 $ gcc -o PIRTrigger PIRTrigger.c -lwiringPi -lquickmail -Wl,-rpath=/usr/local/lib
 
 And run with sudo:
-$ sudo ./PIRTrigger
+$ sudo ./PIRTrigger [-e emailaddress@domain.com] [-s servername]
