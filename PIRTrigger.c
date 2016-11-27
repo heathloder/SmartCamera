@@ -39,7 +39,7 @@
 /***********************************************************
 *  File server settings
 ***********************************************************/
-#define PROTOCOL "ftp://"
+#define FILEPROTOCOL "sftp://"
 
 static void checkPIRClear ();
 static void checkPIRTrigger ();
@@ -164,12 +164,12 @@ static void checkPIRTrigger ()
 		struct stat file_info;
 		curl_off_t fsize;
 		
-		strcpy(remote_url, PROTOCOL);
-		strcat(remote_url, server);
+//		strcpy(remote_url, FPROTOCOL);
+		strcpy(remote_url, server);
 		if (server[(strlen(server)-1)] != '/') {
 			strcat(remote_url, "/");
 		}
-		strcat(remote_url, "test/");
+//		strcat(remote_url, "test/");
 		
 		/* Get file size for "special" FTP servers. */
 		if(stat(fname, &file_info)) {
@@ -201,7 +201,14 @@ static void checkPIRTrigger ()
 		/* Specify file size */
 		curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)fsize);
 		
-		/* Now run off and do what you've been told! */ 
+		#ifndef DISABLE_SSH_AGENT
+			/* We activate ssh agent. For this to work you need
+			to have ssh-agent running (type set | grep SSH_AGENT to check) or
+			pageant on Windows (there is an icon in systray if so) */ 
+			curl_easy_setopt(curl, CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_PASSWORD);
+		#endif
+		
+		/* Now run off and do what you've been told! */
 		printf("filename: %s\n", remote_url);
 		result = curl_easy_perform(curl);
 		/* Check for errors */ 

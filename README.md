@@ -23,3 +23,8 @@ With wiringPi installed, compile the PIRTrigger.c program as follows:
 
 ### STEP 6: run with sudo:
 `$ sudo ./PIRTrigger [-e emailaddress@domain.com] [-s servername]`
+
+#Info for presentation:
+Email: hepabepa@gmail.com
+
+SFTP: sftp://raspi:ILovePi@www.sispecialists.net:2225/~/
