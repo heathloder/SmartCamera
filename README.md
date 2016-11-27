@@ -11,11 +11,13 @@ http://wiringpi.com/download-and-install/
 
 ### STEP 4: Install libquickmail - C library for sending email
 https://sourceforge.net/projects/libquickmail/ 
+
 ***NOTE: After following the instructions for libquickmail, I still needed to run:**
      `$ sudo cp /path/to/where/you/compiled/quickmail.h /usr/local/include/`
      
 ### STEP 5: Compile software and run
 With wiringPi installed, compile the PIRTrigger.c program as follows:
+
 `$ gcc -o PIRTrigger PIRTrigger.c -lwiringPi -lquickmail -lcurl -Wl,-rpath=/usr/local/lib`
 
 ### STEP 6: run with sudo:
