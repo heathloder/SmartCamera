@@ -14,7 +14,7 @@ https://sourceforge.net/projects/libquickmail/
 
 *NOTE: After following the instructions for libquickmail, I still needed to run:*
 
-     `$ sudo cp /path/to/where/you/compiled/quickmail.h /usr/local/include/`
+`$ sudo cp /path/to/where/you/compiled/quickmail.h /usr/local/include/`
      
 ### STEP 5: Compile software and run
 With wiringPi installed, compile the PIRTrigger.c program as follows:
