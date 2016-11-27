@@ -12,7 +12,7 @@ https://sourceforge.net/projects/libquickmail/
      
 STEP 4: Compile software and run
 With wiringPi installed, compile the PIRTrigger.c program as follows:
-$ gcc -o PIRTrigger PIRTrigger.c -lwiringPi -lquickmail -Wl,-rpath=/usr/local/lib
+$ gcc -o PIRTrigger PIRTrigger.c -lwiringPi -lquickmail -lcurl -Wl,-rpath=/usr/local/lib
 
 And run with sudo:
 $ sudo ./PIRTrigger [-e emailaddress@domain.com] [-s servername]

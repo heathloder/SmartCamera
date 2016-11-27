@@ -3,7 +3,7 @@
 *	Authors: Patrick Dzioba
 *			 Heath Loder
 *
-*	Compile Command: gcc -o PIRTrigger PIRTrigger.c -lwiringPi -lquickmail -Wl,-rpath=/usr/local/lib
+*	Compile Command: gcc -o PIRTrigger PIRTrigger.c -lwiringPi -lquickmail -lcurl -Wl,-rpath=/usr/local/lib
 *
 *	Usage: sudo ./PIRTrigger
 *
@@ -17,18 +17,29 @@
 #include <unistd.h>			/* For getopts interface */
 #include <wiringPi.h>		/* WiringPi GPIO library */
 #include <quickmail.h>		/* quickmail email library */
+#include <curl/curl.h>		/* For curl file transfer support */
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
 
 // GPIO Pinout
 #define PIR_SENSOR	7
 
-// Email server settings
+/***********************************************************
+*  Email server settings
+***********************************************************/
 #define SMTPSERVER "smtp.gmail.com"
 #define SMTPPORT 465				/* For SSL */
 //#define SMTPPORT 587				/* For TLS/StartTLS */
 #define SMTPUSER "hepabepa@gmail.com"
 #define SMTPPASS "Email1Still2Works3"
 #define FROM "hepabepa@gmail.com"
-#define TO "hepabepa@gmail.com"
+
+/***********************************************************
+*  File server settings
+***********************************************************/
+#define PROTOCOL "ftp://"
 
 static void checkPIRClear ();
 static void checkPIRTrigger ();
@@ -40,6 +51,7 @@ char server[33];
 
 int main (int argc, char **argv)
 {
+	
 	int c;
 	// While loop to handle when someone enters optional args (options).
 	while ((c = getopt (argc, argv, "e:s:")) != -1) {
@@ -125,8 +137,10 @@ static void checkPIRTrigger ()
 	else
 		printf ("Image captured at %s.\n", pictime);
 	
-	/* Optionally upload and/or email photo. */
-	// Check for Internet connection.
+// Optionally check for Internet connection.
+/***********************************************************
+*  Email file to email address
+***********************************************************/
 	if (eflag==1) {		/* If an email address was provided... */
 		/* Initialize email and send */
 		quickmail_initialize();
@@ -139,8 +153,65 @@ static void checkPIRTrigger ()
 			fprintf(stderr, "Error sending e-mail: %s\n", errmsg);
 		quickmail_destroy(mailobj);
 	}
+/***********************************************************
+*  Upload file to server
+***********************************************************/	
 	if (sflag==1) {		/* If a server name was provided... */
-		// initialize connection and attempt to save
+		CURL *curl;
+		CURLcode result;
+		FILE *hd_src;
+		char remote_url[70];
+		struct stat file_info;
+		curl_off_t fsize;
+		
+		strcpy(remote_url, PROTOCOL);
+		strcat(remote_url, server);
+		if (server[(strlen(server)-1)] != '/') {
+			strcat(remote_url, "/");
+		}
+		strcat(remote_url, "test/");
+		
+		/* Get file size for "special" FTP servers. */
+		if(stat(fname, &file_info)) {
+			printf("Couldn't open source file %s: %s\n", fname, strerror(errno));
+			exit(1);
+		}
+		fsize = (curl_off_t)file_info.st_size;
+		
+		/* get a RO FILE * of the file */ 
+		hd_src = fopen(fname, "rb");
+		strcat(remote_url, fname);
+		
+		/* In windows, this will init the winsock stuff */
+		curl_global_init(CURL_GLOBAL_ALL);
+		/* get a curl handle */ 
+		curl = curl_easy_init();
+		if (!curl) {
+			perror("Curl library error");
+			exit(1);
+		}
+		/* Enable verbose output */
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+		/* Enable uploading */ 
+		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+		/* Specify target */ 
+		curl_easy_setopt(curl, CURLOPT_URL, remote_url);
+		/* now specify which file to upload */ 
+		curl_easy_setopt(curl, CURLOPT_READDATA, hd_src);
+		/* Specify file size */
+		curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)fsize);
+		
+		/* Now run off and do what you've been told! */ 
+		printf("filename: %s\n", remote_url);
+		result = curl_easy_perform(curl);
+		/* Check for errors */ 
+		if(result != CURLE_OK)
+			fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(result));
+		
+		/* always cleanup */ 
+		curl_easy_cleanup(curl);
+		fclose(hd_src); 	/* close the local file */
+		curl_global_cleanup();
 	}
 }
 
