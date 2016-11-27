@@ -26,5 +26,3 @@ With wiringPi installed, compile the PIRTrigger.c program as follows:
 
 #Info for presentation:
 Email: hepabepa@gmail.com
-
-SFTP: sftp://raspi:ILovePi@www.sispecialists.net:2225/~/
